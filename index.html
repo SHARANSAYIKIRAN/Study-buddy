@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Buddy — Learn. Plan. Focus.</title>
+  <meta name="description" content="AI-Powered Student Productivity & Study Room with PDF Reader, Focus Timer, Tasks & Interactive Quiz Tutor." />
+
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- KaTeX Math Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Highlight.js Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- Marked & DOMPurify Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+
+  <!-- Mozilla PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- Pure Black UI Design System -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div id="app-root">
+
+  <!-- ========================================================================
+       AUTH SCREEN (Login & Registration Overlay)
+       ======================================================================== -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="auth-brand-logo">📖</div>
+        <div class="auth-brand-title">Study Buddy</div>
+        <div class="auth-brand-sub">Your AI-Powered Personal Study Workspace</div>
+      </div>
+
+      <div class="auth-tabs-toggle">
+        <button type="button" class="auth-tab-btn active" id="auth-tab-login">Sign In</button>
+        <button type="button" class="auth-tab-btn" id="auth-tab-register">Create Account</button>
+      </div>
+
+      <div class="auth-error-banner" id="auth-error-banner"></div>
+
+      <form id="auth-form" class="auth-form" onsubmit="return false;">
+        <!-- Username (visible on Register, or can be used on Login) -->
+        <div class="form-group" id="auth-username-group">
+          <label class="form-label" for="auth-username-input">Username</label>
+          <input type="text" id="auth-username-input" class="form-input" placeholder="e.g. Alex Rivera" autocomplete="name" />
+        </div>
+
+        <!-- Gmail / Email -->
+        <div class="form-group" id="auth-email-group">
+          <label class="form-label" for="auth-email-input">Gmail / Email Address</label>
+          <input type="email" id="auth-email-input" class="form-input" placeholder="name@gmail.com" autocomplete="email" required />
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label class="form-label" for="auth-password-input">Password</label>
+            <button type="button" id="auth-toggle-pwd-btn" style="font-size:11px; color:var(--text-muted); cursor:pointer;">Show</button>
+          </div>
+          <input type="password" id="auth-password-input" class="form-input" placeholder="••••••••" autocomplete="current-password" required />
+        </div>
+
+        <!-- Avatar / PFP Picker (Shown on Register) -->
+        <div class="avatar-picker-section" id="auth-avatar-section" style="display:none;">
+          <label class="form-label" style="align-self:flex-start;">Choose Profile Picture (PFP)</label>
+          <div style="display:flex; align-items:center; gap:16px; width:100%;">
+            <div class="avatar-preview-circle" id="auth-avatar-preview" title="Click to upload custom photo">
+              <span id="auth-avatar-icon">🦉</span>
+              <div class="avatar-upload-overlay">📷</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; flex:1;">
+              <input type="file" id="auth-pfp-file" accept="image/*" style="display:none;" />
+              <button type="button" class="btn-upload-pfp" id="auth-upload-pfp-btn">📁 Upload Custom Photo</button>
+              <div class="avatar-presets-grid" id="auth-avatar-presets">
+                <button type="button" class="avatar-preset-btn active" data-avatar="🦉">🦉</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="🚀">🚀</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="⚡">⚡</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="🎓">🎓</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="💻">💻</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="🧠">🧠</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="🎯">🎯</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="📚">📚</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="auth-submit-btn" style="width:100%; padding:12px; font-size:14px; margin-top:6px;">
+          Sign In
+        </button>
+
+        <div style="text-align:center; font-size:11.5px; color:var(--text-muted); margin-top:4px;">
+          <a href="#" id="auth-guest-link" style="color:var(--text-secondary); text-decoration:none;">Continue as Guest →</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       PERSISTENT SIDEBAR NAVIGATION
+       ======================================================================== -->
+  <aside id="app-sidebar">
+    <div class="sidebar-header">
+      <a href="#" class="sidebar-logo-group" onclick="window.app.navigateTo('dashboard'); return false;">
+        <div class="sidebar-logo-icon">📖</div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-title">Study Buddy</span>
+          <span class="sidebar-logo-sub">Learn. Plan. Focus.</span>
+        </div>
+      </a>
+      <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" title="Toggle Sidebar">☰</button>
+    </div>
+
+    <nav class="sidebar-nav-list">
+      <button class="nav-item active" data-view="dashboard">
+        <span class="nav-icon">⊞</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-item" data-view="study">
+        <span class="nav-icon">📖</span>
+        <span class="nav-label">Study Room</span>
+      </button>
+      <button class="nav-item" data-view="focustimer">
+        <span class="nav-icon">⏱</span>
+        <span class="nav-label">Focus Timer</span>
+      </button>
+      <button class="nav-item" data-view="tasks">
+        <span class="nav-icon">☑</span>
+        <span class="nav-label">Tasks</span>
+      </button>
+      <button class="nav-item" data-view="statistics">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Statistics</span>
+      </button>
+      <button class="nav-item" data-view="notes">
+        <span class="nav-icon">📝</span>
+        <span class="nav-label">Notes</span>
+      </button>
+      <button class="nav-item" data-view="study" onclick="window.app.switchStudyTab('ai')">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">AI Assistant</span>
+      </button>
+      <button class="nav-item" data-view="settings">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Settings</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-card">
+        <div style="font-weight:600; color:var(--text-primary); margin-bottom:2px;">Active Goal</div>
+        <div>60m Daily • 28h Weekly</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========================================================================
+       MAIN APPLICATION AREA
+       ======================================================================== -->
+  <main id="app-main">
+
+    <!-- Top Compact Header -->
+    <header class="app-header">
+      <div class="header-search-wrap">
+        <span class="header-search-icon">🔍</span>
+        <input type="text" id="header-search-input" class="header-search-input" placeholder="Search notes, subjects, or ask AI..." autocomplete="off" />
+      </div>
+
+      <div class="header-right-actions">
+        <button class="header-btn" title="System Status: Operational">
+          <span>🔆</span>
+        </button>
+        <button class="header-btn" title="Notifications">
+          <span>🔔</span>
+          <span class="notification-badge"></span>
+        </button>
+        
+        <!-- User Profile Avatar & Dropdown Trigger -->
+        <div class="user-profile-badge" id="header-user-btn" title="Account & Profile">
+          <span id="header-user-avatar">👤</span>
+        </div>
+
+        <!-- Profile Dropdown Menu -->
+        <div id="profile-dropdown-menu" class="hidden">
+          <div class="dropdown-user-row">
+            <div class="dropdown-avatar-circle" id="dropdown-user-avatar">
+              <span>👤</span>
+            </div>
+            <div class="dropdown-user-meta">
+              <span class="dropdown-user-name" id="dropdown-user-name">User</span>
+              <span class="dropdown-user-email" id="dropdown-user-email">user@gmail.com</span>
+            </div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button type="button" class="dropdown-action-btn" id="dropdown-edit-profile-btn">
+            <span>✏️</span> Edit Profile & PFP
+          </button>
+          <button type="button" class="dropdown-action-btn" id="dropdown-settings-btn">
+            <span>⚙️</span> Settings
+          </button>
+          <div class="dropdown-divider"></div>
+          <button type="button" class="dropdown-action-btn danger" id="dropdown-logout-btn">
+            <span>🚪</span> Sign Out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Views Switcher Container -->
+    <div class="views-container">
+
+      <!-- ====================================================================
+           1. DASHBOARD VIEW (Pure Black & High Aesthetics matching Mockup)
+           ==================================================================== -->
+      <section id="view-dashboard" class="app-view active">
+        <div class="dashboard-content-wrap">
+
+          <!-- Greeting & Motivational Banner -->
+          <div class="dashboard-greeting-header">
+            <div class="greeting-text-group">
+              <h1><span id="dashboard-greeting-time">Good Morning,</span> <span id="dashboard-greeting-name">Student</span></h1>
+              <p class="greeting-subtext">Stay consistent. Small steps create big results.</p>
+            </div>
+            <div class="greeting-date-group">
+              <div class="greeting-date" id="header-current-date">Tue, 14 Oct 2026</div>
+              <div class="greeting-quote">"Discipline today, results tomorrow."</div>
+            </div>
+          </div>
+
+          <!-- 4 Statistics Cards Grid -->
+          <div class="metric-cards-grid">
+            <!-- 1. Today's Study Time -->
+            <div class="metric-card">
+              <div class="metric-top-row">
+                <div class="metric-icon-wrap green">⏱</div>
+                <div class="metric-trend-badge positive" id="metric-today-trend">↑ 35%</div>
+              </div>
+              <div class="metric-val" id="metric-today-time">3h 24m</div>
+              <div class="metric-label">Today's Study Time</div>
+              <div class="metric-sparkline-row" id="metric-today-sparkline">
+                <!-- Sparkline bars dynamically generated -->
+              </div>
+            </div>
+
+            <!-- 2. This Week -->
+            <div class="metric-card">
+              <div class="metric-top-row">
+                <div class="metric-icon-wrap blue">📅</div>
+              </div>
+              <div class="metric-val" id="metric-week-time">18h 12m</div>
+              <div class="metric-label">This Week</div>
+              <div class="metric-weekly-chart" id="metric-week-chart">
+                <!-- 7 Daily columns dynamically generated -->
+              </div>
+            </div>
+
+            <!-- 3. Study Streak -->
+            <div class="metric-card">
+              <div class="metric-top-row">
+                <div class="metric-icon-wrap orange">🔥</div>
+              </div>
+              <div class="metric-val" id="metric-streak-days">7 days</div>
+              <div class="metric-label">Study Streak</div>
+              <div class="metric-streak-dots" id="metric-streak-dots">
+                <!-- S M T W T F S day dot indicators -->
+              </div>
+            </div>
+
+            <!-- 4. Weekly Goal -->
+            <div class="metric-card">
+              <div class="metric-top-row">
+                <div class="metric-icon-wrap purple">🎯</div>
+              </div>
+              <div class="metric-val" id="metric-weekly-goal-pct">64%</div>
+              <div class="metric-label">Weekly Goal</div>
+              <div class="metric-progress-track">
+                <div class="metric-progress-fill" id="metric-weekly-goal-bar" style="width: 64%"></div>
+              </div>
+              <div class="metric-subtext-right" id="metric-weekly-goal-sub">18h / 28h</div>
+            </div>
+          </div>
+
+          <!-- Lower 3-Section Grid (Recently Studied, Today's Tasks, Study Distribution) -->
+          <div class="dashboard-main-grid">
+
+            <!-- Recently Studied PDFs -->
+            <div class="dashboard-panel-card">
+              <div class="panel-card-header">
+                <div class="panel-card-title">
+                  <span>⏱</span> Recently Studied
+                </div>
+                <a href="#" class="panel-card-link" onclick="window.app.navigateTo('study'); return false;">View All →</a>
+              </div>
+              <div class="recent-pdfs-list" id="dashboard-recent-pdfs">
+                <!-- Dynamic recent PDF rows -->
+              </div>
+            </div>
+
+            <!-- Today's Tasks -->
+            <div class="dashboard-panel-card">
+              <div class="panel-card-header">
+                <div class="panel-card-title">
+                  <span>☑</span> Today's Tasks
+                </div>
+                <button class="panel-card-btn" id="dashboard-add-task-btn">+ Add Task</button>
+              </div>
+              <div class="today-tasks-list" id="dashboard-today-tasks">
+                <!-- Interactive task checklist items -->
+              </div>
+            </div>
+
+            <!-- Study Distribution Donut Chart -->
+            <div class="dashboard-panel-card">
+              <div class="panel-card-header">
+                <div class="panel-card-title">
+                  <span>📊</span> Study Distribution
+                </div>
+              </div>
+              <div class="distribution-chart-wrap">
+                <div class="donut-svg-container">
+                  <svg id="dashboard-distribution-donut" viewBox="0 0 200 200" width="180" height="180"></svg>
+                  <div class="donut-center-label">
+                    <span class="donut-center-time" id="distribution-center-time">3h 24m</span>
+                    <span class="donut-center-sub">Total Today</span>
+                  </div>
+                </div>
+                <div class="distribution-legend" id="dashboard-distribution-legend">
+                  <!-- Legend items dynamically generated -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           2. PDF STUDY ROOM (Focused Workspace with Left Thumbnails & Right Sidebar)
+           ==================================================================== -->
+      <section id="view-study" class="app-view">
+        <div class="study-room-layout">
+
+          <!-- Left: Collapsible PDF Thumbnails -->
+          <div class="pdf-thumbnails-strip" id="pdf-thumbnails-strip">
+            <!-- Dynamic page thumbnail previews -->
+          </div>
+
+          <!-- Center: PDF Viewer Workspace -->
+          <div class="pdf-viewer-workspace">
+            <div class="pdf-workspace-toolbar">
+              <div class="pdf-toolbar-group">
+                <button class="pdf-toolbar-btn" id="toggle-thumbnails-btn" title="Toggle Thumbnails">📑</button>
+                <button class="pdf-toolbar-btn primary" id="open-pdf-btn"><span>📁</span> Open PDF</button>
+                <span class="pdf-doc-title" id="pdf-filename-display">Module 4 Notes.pdf</span>
+              </div>
+
+              <div class="pdf-toolbar-group">
+                <button class="pdf-toolbar-btn" id="pdf-prev-page" title="Previous Page">◀</button>
+                <div class="pdf-page-indicator">
+                  <input type="number" id="pdf-page-input" class="pdf-page-input" value="1" min="1" />
+                  <span>/ <span id="pdf-page-total">5</span></span>
+                </div>
+                <button class="pdf-toolbar-btn" id="pdf-next-page" title="Next Page">▶</button>
+              </div>
+
+              <div class="pdf-toolbar-group">
+                <button class="pdf-toolbar-btn" id="pdf-zoom-out" title="Zoom Out">➖</button>
+                <span id="pdf-zoom-display" style="font-size:12px; color:var(--text-secondary); width:40px; text-align:center;">115%</span>
+                <button class="pdf-toolbar-btn" id="pdf-zoom-in" title="Zoom In">➕</button>
+              </div>
+            </div>
+
+            <!-- Canvas Scroll Container -->
+            <div class="pdf-canvas-scroll-container" id="pdf-canvas-container">
+              <div class="pdf-upload-placeholder" id="pdf-placeholder" style="display:none;">
+                <div class="placeholder-icon">📄</div>
+                <div class="placeholder-title">Drop your PDF here</div>
+                <div class="placeholder-sub">Drag and drop textbooks, lecture notes, or assignments to start reading.</div>
+                <button class="pdf-toolbar-btn primary" id="placeholder-upload-btn" style="padding:10px 20px; font-size:13px;">
+                  📂 Browse Files
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Study Room Tabbed Sidebar (AI Assistant, Checklist, Notes) -->
+          <div class="study-room-sidebar">
+            <div class="study-sidebar-tabs-header">
+              <button class="study-tab-btn active" data-tab="ai"><span>💬</span> AI Assistant</button>
+              <button class="study-tab-btn" data-tab="checklist"><span>☑</span> Checklist</button>
+              <button class="study-tab-btn" data-tab="notes"><span>📝</span> Notes</button>
+            </div>
+
+            <!-- TAB 1: AI Assistant -->
+            <div class="study-tab-panel active" id="panel-ai">
+              <div class="ai-panel-header">
+                <select id="ai-model-selector" class="ai-model-select">
+                  <option value="gemini:gemini-3.8-flash">Gemini 3.8 Flash</option>
+                  <option value="openai:gpt-4o">ChatGPT (GPT-4o)</option>
+                  <option value="openai:gpt-4o-mini">ChatGPT (GPT-4o-mini)</option>
+                  <option value="anthropic:claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                  <option value="ollama:llama3">Ollama (Llama 3)</option>
+                  <option value="openrouter:google/gemini-3.8-flash">OpenRouter</option>
+                </select>
+                <button class="panel-card-btn" onclick="window.app.navigateTo('settings')" title="AI Settings">⚙️</button>
+              </div>
+
+              <!-- Engineering Subject Selector Strip -->
+              <div class="study-subject-strip">
+                <button class="study-subject-pill active" data-subject="general">🌟 General</button>
+                <button class="study-subject-pill" data-subject="math">🔢 Eng. Math</button>
+                <button class="study-subject-pill" data-subject="cs">💻 CS & Software</button>
+                <button class="study-subject-pill" data-subject="eee">⚡ Electrical</button>
+                <button class="study-subject-pill" data-subject="mech">⚙️ Mechanical</button>
+                <button class="study-subject-pill" data-subject="civil">🏗️ Civil</button>
+                <button class="study-subject-pill" data-subject="robotics">🤖 Robotics & AI</button>
+                <button class="study-subject-pill" data-subject="physics">⚛️ Physics</button>
+                <button class="study-subject-pill" data-subject="chem">🧪 Chemistry</button>
+              </div>
+
+              <!-- Quick Prompt Action Chips -->
+              <div class="quick-chips-strip">
+                <button class="quick-chip" id="action-explain-page">💡 Explain Page</button>
+                <button class="quick-chip" id="action-quiz-page">📝 Quiz Me On Page</button>
+                <button class="quick-chip" id="action-quiz-general">🧠 Practice Quiz</button>
+              </div>
+
+              <!-- AI Chat Messages -->
+              <div class="ai-messages-scroll" id="ai-chat-messages">
+                <!-- Messages appended dynamically -->
+              </div>
+
+              <div id="ai-typing-indicator" class="typing-dots" style="display:none;">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+
+              <!-- Chat Input Area -->
+              <div class="ai-input-area">
+                <div class="ai-input-row">
+                  <input type="text" id="ai-chat-input" class="ai-chat-input" placeholder="Ask anything about your PDF... 📚" autocomplete="off" />
+                  <button id="ai-chat-send-btn" class="ai-send-btn" title="Send">➤</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: PDF Checklist -->
+            <div class="study-tab-panel" id="panel-checklist">
+              <div class="checklist-panel-content">
+                <div class="checklist-meta-card">
+                  <div class="checklist-meta-header">
+                    <span class="checklist-count" id="checklist-count-display">3 / 8</span>
+                    <span class="checklist-pct-badge" id="checklist-pct-display">37%</span>
+                  </div>
+                  <div class="checklist-progress-bar-wrap">
+                    <div class="checklist-progress-fill" id="checklist-progress-bar" style="width: 37%"></div>
+                  </div>
+                </div>
+
+                <div class="checklist-items-list" id="checklist-items-container">
+                  <!-- Checklist items rendered dynamically -->
+                </div>
+
+                <div class="checklist-bottom-actions">
+                  <button class="checklist-btn add" id="checklist-add-btn">+ Add</button>
+                  <button class="checklist-btn ai" id="checklist-ai-generate-btn">✨ AI Generate</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: Notes -->
+            <div class="study-tab-panel" id="panel-notes">
+              <div class="notes-panel-content">
+                <textarea id="study-room-notes-editor" class="notes-textarea" placeholder="Take notes for this document... Formulas, theorems, key insights auto-saved locally."></textarea>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           3. FULL FOCUS TIMER VIEW
+           ==================================================================== -->
+      <section id="view-focustimer" class="app-view">
+        <div class="focus-timer-view-wrap">
+          <div class="full-timer-ring-container">
+            <svg viewBox="0 0 280 280" width="280" height="280" style="transform: rotate(-90deg);">
+              <circle cx="140" cy="140" r="120" fill="none" stroke="#262626" stroke-width="8" />
+              <circle id="full-timer-ring-progress" cx="140" cy="140" r="120" fill="none" stroke="#4ADE80" stroke-width="8" stroke-linecap="round" />
+            </svg>
+            <div class="full-timer-center">
+              <div class="full-timer-time" id="full-timer-time">18:24</div>
+              <div class="full-timer-total" id="full-timer-total">/ 25:00</div>
+              <div class="session-cycle-dots" id="full-timer-session-dots">
+                <span class="session-dot active"></span>
+                <span class="session-dot active"></span>
+                <span class="session-dot"></span>
+                <span class="session-dot"></span>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:14px; color:var(--text-secondary); font-weight:600;" id="full-timer-session-text">
+            Session 2 / 4
+          </div>
+
+          <div class="full-timer-actions">
+            <button class="panel-card-btn" onclick="window.focusTimer.adjustMinutes(-5)">- 5m</button>
+            <button class="full-timer-primary-btn" id="full-timer-playpause">
+              <span>▶</span> Start
+            </button>
+            <button class="panel-card-btn" onclick="window.focusTimer.adjustMinutes(5)">+ 5m</button>
+            <button class="panel-card-btn" onclick="window.focusTimer.reset()">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           4. TASKS VIEW
+           ==================================================================== -->
+      <section id="view-tasks" class="app-view">
+        <div class="dashboard-content-wrap">
+          <div class="panel-card-header" style="margin-bottom:20px;">
+            <h2>Study Schedule & Tasks</h2>
+            <button class="btn-primary" onclick="window.app.openTaskModal()">+ Add New Task</button>
+          </div>
+          <div id="full-tasks-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           5. STATISTICS VIEW
+           ==================================================================== -->
+      <section id="view-statistics" class="app-view">
+        <div class="dashboard-content-wrap">
+          <h2>Study Analytics & Historical Tracking</h2>
+          <div id="full-statistics-content"></div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           6. NOTES VIEW
+           ==================================================================== -->
+      <section id="view-notes" class="app-view">
+        <div class="dashboard-content-wrap" style="height:100%;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h2>Study Notes & Markdown Scratchpad</h2>
+            <select id="notes-doc-select" class="form-select" style="max-width:240px;"></select>
+          </div>
+          <textarea id="full-notes-editor" class="notes-textarea" style="flex:1; min-height:400px;" placeholder="Start writing notes..."></textarea>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           7. SETTINGS VIEW
+           ==================================================================== -->
+      <section id="view-settings" class="app-view">
+        <div class="settings-content-wrap">
+          <div class="settings-section-card">
+            <div class="settings-section-title">👤 User Profile & Goals</div>
+            
+            <!-- Avatar & Profile Photo Section -->
+            <div class="avatar-picker-section">
+              <div class="avatar-preview-circle" id="settings-avatar-preview" title="Click to upload custom photo" style="width:84px; height:84px; font-size:38px;">
+                <span id="settings-avatar-icon">👤</span>
+                <div class="avatar-upload-overlay">📷</div>
+              </div>
+              <input type="file" id="settings-pfp-file" accept="image/*" style="display:none;" />
+              <button type="button" class="btn-upload-pfp" id="settings-upload-pfp-btn">📁 Change Profile Photo</button>
+              <div class="avatar-presets-grid" id="settings-avatar-presets">
+                <button type="button" class="avatar-preset-btn" data-avatar="🦉">🦉</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="🚀">🚀</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="⚡">⚡</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="🎓">🎓</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="💻">💻</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="🧠">🧠</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="🎯">🎯</button>
+                <button type="button" class="avatar-preset-btn" data-avatar="📚">📚</button>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div class="form-group">
+                <label class="form-label" for="settings-user-name">Your Name / Username</label>
+                <input type="text" id="settings-user-name" class="form-input" placeholder="Your name" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="settings-user-email">Gmail / Email</label>
+                <input type="email" id="settings-user-email" class="form-input" placeholder="name@gmail.com" />
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div class="form-group">
+                <label class="form-label" for="settings-daily-goal">Daily Goal (Minutes)</label>
+                <input type="number" id="settings-daily-goal" class="form-input" value="60" min="10" max="720" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="settings-weekly-goal">Weekly Goal (Hours)</label>
+                <input type="number" id="settings-weekly-goal" class="form-input" value="28" min="1" max="168" />
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section-card">
+            <div class="settings-section-title">⏱ Focus Timer & Visibility</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div class="form-group">
+                <label class="form-label" for="settings-pomodoro-duration">Focus Duration (Mins)</label>
+                <input type="number" id="settings-pomodoro-duration" class="form-input" value="25" min="1" max="120" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="settings-short-break">Short Break (Mins)</label>
+                <input type="number" id="settings-short-break" class="form-input" value="5" min="1" max="60" />
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+              <label class="custom-checkbox" style="gap:10px;">
+                <input type="checkbox" id="settings-auto-pause" checked />
+                <span class="checkbox-indicator"></span>
+                <span style="font-size:13px; color:var(--text-primary)">Auto-pause timer when browser tab is hidden (Page Visibility API)</span>
+              </label>
+              <label class="custom-checkbox" style="gap:10px;">
+                <input type="checkbox" id="settings-sound-enabled" checked />
+                <span class="checkbox-indicator"></span>
+                <span style="font-size:13px; color:var(--text-primary)">Play completion chime on session end (Web Audio API)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-section-card">
+            <div class="settings-section-title">🤖 Multi-AI Provider Credentials</div>
+            <div class="form-group">
+              <label class="form-label" for="settings-provider-select">Default AI Provider</label>
+              <select id="settings-provider-select" class="form-select">
+                <option value="gemini">Google Gemini</option>
+                <option value="openai">OpenAI (ChatGPT)</option>
+                <option value="anthropic">Anthropic Claude</option>
+                <option value="ollama">Ollama (Local Server)</option>
+                <option value="openrouter">OpenRouter</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="settings-gemini-key">Google Gemini API Key</label>
+              <input type="password" id="settings-gemini-key" class="form-input" placeholder="AIzaSy..." />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="settings-openai-key">OpenAI API Key</label>
+              <input type="password" id="settings-openai-key" class="form-input" placeholder="sk-..." />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="settings-claude-key">Anthropic Claude API Key</label>
+              <input type="password" id="settings-claude-key" class="form-input" placeholder="sk-ant-..." />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="settings-openrouter-key">OpenRouter API Key</label>
+              <input type="password" id="settings-openrouter-key" class="form-input" placeholder="sk-or-..." />
+            </div>
+
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
+              <div class="form-group">
+                <label class="form-label" for="settings-ollama-url">Ollama Server URL</label>
+                <input type="text" id="settings-ollama-url" class="form-input" value="http://localhost:11434" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="settings-ollama-model">Ollama Model</label>
+                <input type="text" id="settings-ollama-model" class="form-input" value="llama3" />
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:8px;">
+              <button class="btn-secondary" id="settings-test-key-btn">🧪 Test Connection</button>
+            </div>
+          </div>
+
+          <div class="settings-section-card">
+            <div class="settings-section-title">💾 Data & Backup</div>
+            <div style="display:flex; gap:12px;">
+              <button class="btn-secondary" id="settings-export-data">📥 Export Study Data (JSON)</button>
+              <button class="btn-secondary" id="settings-reset-data" style="color:var(--accent-red); border-color:rgba(239,68,68,0.3)">⚠️ Reset All Data</button>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end;">
+            <button class="btn-primary" id="settings-save-btn" style="padding:12px 32px; font-size:14px;">💾 Save All Settings</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================
+       FLOATING CIRCULAR DRAGGABLE FOCUS TIMER (Always visible overlaying PDF)
+       ======================================================================== -->
+  <div id="floating-timer-widget" title="Draggable Focus Timer — Click to Pause/Resume">
+    <div class="timer-drag-handle" id="timer-drag-handle">⠿</div>
+    <button class="timer-minimize-btn" id="timer-btn-minimize" title="Minimize timer">✕</button>
+
+    <svg class="timer-svg-ring" viewBox="0 0 110 110">
+      <circle class="ring-bg" cx="55" cy="55" r="48" fill="none" />
+      <circle id="timer-ring-progress" class="ring-fg" cx="55" cy="55" r="48" fill="none" />
+    </svg>
+
+    <div class="timer-center-content">
+      <span class="timer-mode-tag" id="timer-display-mode">Focus</span>
+      <span class="timer-main-time" id="timer-display-time">18:24</span>
+      <span class="timer-total-time" id="timer-display-total">/ 25:00</span>
+      <button class="timer-playpause-btn" id="timer-btn-toggle" title="Play / Pause">
+        <span id="timer-icon-playpause">▶</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Minimized Floating Widgets -->
+  <div id="minimized-timer-pill" class="minimized-floating-pill hidden" title="Click to expand Focus Timer">
+    <span>⏱</span>
+    <span id="minimized-timer-time">18:24</span>
+    <span id="minimized-timer-icon">▶</span>
+  </div>
+
+  <div id="minimized-checklist-pill" class="minimized-floating-pill hidden" title="Click to expand PDF Checklist">
+    <span>✓</span>
+    <span id="minimized-checklist-count">3/8</span>
+  </div>
+
+  <!-- Global Toast Notification -->
+  <div id="global-toast"></div>
+
+  <!-- Hidden File Input for PDF Upload -->
+  <input type="file" id="pdf-file-input" accept="application/pdf" style="display:none;" />
+
+  <!-- ========================================================================
+       MODALS
+       ======================================================================== -->
+
+  <!-- Edit Profile & PFP Modal -->
+  <div id="edit-profile-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-title">✏️ Edit Profile & Avatar</div>
+      
+      <div class="avatar-picker-section">
+        <div class="avatar-preview-circle" id="edit-modal-avatar-preview" title="Click to upload custom photo" style="width:84px; height:84px; font-size:38px;">
+          <span id="edit-modal-avatar-icon">👤</span>
+          <div class="avatar-upload-overlay">📷</div>
+        </div>
+        <input type="file" id="edit-modal-pfp-file" accept="image/*" style="display:none;" />
+        <button type="button" class="btn-upload-pfp" id="edit-modal-upload-btn">📁 Choose Custom Photo</button>
+        <div class="avatar-presets-grid" id="edit-modal-avatar-presets">
+          <button type="button" class="avatar-preset-btn" data-avatar="🦉">🦉</button>
+          <button type="button" class="avatar-preset-btn" data-avatar="🚀">🚀</button>
+          <button type="button" class="avatar-preset-btn" data-avatar="⚡">⚡</button>
+          <button type="button" class="avatar-preset-btn" data-avatar="🎓">🎓</button>
+          <button type="button" class="avatar-preset-btn" data-avatar="💻">💻</button>
+          <button type="button" class="avatar-preset-btn" data-avatar="🧠">🧠</button>
+          <button type="button" class="avatar-preset-btn" data-avatar="🎯">🎯</button>
+          <button type="button" class="avatar-preset-btn" data-avatar="📚">📚</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="edit-profile-username-input">Username / Name</label>
+        <input type="text" id="edit-profile-username-input" class="form-input" placeholder="Your username" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="edit-profile-email-input">Gmail / Email Address</label>
+        <input type="email" id="edit-profile-email-input" class="form-input" placeholder="name@gmail.com" />
+      </div>
+
+      <div class="modal-actions-row">
+        <button type="button" class="btn-secondary" id="edit-profile-cancel-btn">Cancel</button>
+        <button type="button" class="btn-primary" id="edit-profile-save-btn">Save Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Task Modal -->
+  <div id="add-task-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-title">+ Add Today's Task</div>
+      <div class="form-group">
+        <label class="form-label" for="task-title-input">Task Title</label>
+        <input type="text" id="task-title-input" class="form-input" placeholder="e.g. Solve 5 problems on Markov Chains" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="task-time-input">Scheduled Time</label>
+        <input type="text" id="task-time-input" class="form-input" placeholder="e.g. 15:00 - 16:30" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="task-subject-select">Subject Category</label>
+        <select id="task-subject-select" class="form-select">
+          <option value="cs">CS & Software</option>
+          <option value="math">Mathematics</option>
+          <option value="eee">Electrical Engineering</option>
+          <option value="mech">Mechanical Engineering</option>
+          <option value="civil">Civil Engineering</option>
+          <option value="general">General Study</option>
+        </select>
+      </div>
+      <div class="modal-actions-row">
+        <button class="btn-secondary" id="task-cancel-btn">Cancel</button>
+        <button class="btn-primary" id="task-save-btn">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Checklist Generator Modal -->
+  <div id="ai-checklist-modal" class="modal-overlay hidden">
+    <div class="modal-card" style="max-width:520px;">
+      <div class="modal-title">✨ AI-Suggested Study Checklist</div>
+      <p style="font-size:12px; color:var(--text-secondary);">
+        Study Buddy analyzed your PDF and suggested these manageable study portions. Select, edit, or adjust before saving.
+      </p>
+
+      <div id="ai-checklist-loading" style="display:flex; align-items:center; justify-content:center; padding:30px; gap:10px;">
+        <div class="typing-dot" style="background:var(--accent-green)"></div>
+        <div class="typing-dot" style="background:var(--accent-green)"></div>
+        <div class="typing-dot" style="background:var(--accent-green)"></div>
+        <span style="font-size:12.5px; color:var(--text-secondary); margin-left:6px;">Analyzing document content...</span>
+      </div>
+
+      <div id="ai-checklist-preview-list" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;"></div>
+
+      <div class="modal-actions-row">
+        <button class="btn-secondary" id="ai-checklist-close-btn">Cancel</button>
+        <button class="btn-primary" id="ai-checklist-save-btn">Save to Checklist</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Application Modules -->
+<script src="js/storage.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/pdf-viewer.js"></script>
+<script src="js/ai-provider.js"></script>
+<script src="js/quiz-engine.js"></script>
+<script src="js/checklist.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
